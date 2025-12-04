@@ -8,19 +8,38 @@ export interface CartItem {
   quantity: number;
 }
 
+interface CustomerInfo {
+  name: string;
+  phone: string;
+  address: string;
+}
+
 interface CartContextValue {
   items: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (productId: number) => void;
+  updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
   subtotal: number;
+
+  customer: CustomerInfo;
+  updateCustomer: (data: Partial<CustomerInfo>) => void;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+
+  const [customer, setCustomer] = useState<CustomerInfo>({
+    name: "",
+    phone: "",
+    address: "",
+  });
+
+  const updateCustomer = (data: Partial<CustomerInfo>) => {
+    setCustomer((prev) => ({ ...prev, ...data }));
+  };
 
   const addToCart = (product: Product, quantity: number = 1) => {
     setItems((prev) => {
@@ -36,11 +55,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = (productId: number) => {
     setItems((prev) => prev.filter((i) => i.product.id !== productId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) return removeFromCart(productId);
     setItems((prev) =>
       prev.map((i) =>
@@ -65,6 +84,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         updateQuantity,
         clearCart,
         subtotal,
+        customer,
+        updateCustomer,
       }}
     >
       {children}
